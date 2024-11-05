@@ -1,18 +1,20 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 3000;
-db_pass = process.env.MONGO_PASS
-uri = `mongodb+srv://jtmacoco:${db_pass}@cluster0.t4uwd.mongodb.net/`
+const db_pass = process.env.DB_PASS
+const user = process.env.UNAME
+const uri = `mongodb+srv://${user}:${db_pass}@cluster0.t4uwd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
+const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 async function connectDB() {
     try{
-        mongoose.connect(uri)
-        console.log("success")
+        await mongoose.connect(uri,clientOptions)
+        console.log("success connected to db")
     }
     catch(error){
         console.log(error)
     }
 }
-app.listen(PORT,() => {console.log(`starting server using port ${PORT}`)})
 connectDB()
-
+app.listen(PORT,() => {console.log(`starting server using port ${PORT}`)})
