@@ -28,12 +28,11 @@ async function connectDB() {
     }
 }
 io.on('connection', (socket) => {
-    console.log('a user connected')
     socket.emit('documentUpdate', documentContent);
 
     socket.on('documentUpdate', (content) => {
         documentContent = content
-        io.emit('documentUpdate', documentContent)
+        socket.broadcast.emit('documentUpdate', documentContent)
     })
 
 })
