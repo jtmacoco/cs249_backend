@@ -1,32 +1,35 @@
-export default class Lamport{
-    constructor(node_id){
+export default class VectorClock{
+    constructor(doc_id){
         this.vec = {}
-        this.node_id = node_id
-        this.vec[node_id] = 0 
+        this.doc_id = doc_id
     }
     get_vector(){
         return {...this.vec}
     }
-    event(){
-        if (!(this.node_id in this.vec))
-            this.vec[this.node_id] = 0
-        this.vec[this.node_id]++
+    add(node_id){
+            this.vec[node_id] = 0
     }
-    receive(received_vec){
+    checkInVec(node_id){
+        if (!(node_id in this.vec))
+            this.add(node_id)
+    }
+    event(node_id){
+        this.vec[node_id]++
+    }
+    receive(node_id,received_vec){
         for (const[node,time] of Object.entries(received_vec)){
             console.log(`node: ${node}`)
             if(!(node in this.vec))
             {
-                console.log("hi")
                 this.vec[node] = 0
             }
             this.vec[node] = Math.max(this.vec[node],time)
         }
-        this.vec[this.node_id]++
-        console.log(JSON.stringify(this.vec))
+        //this.vec[node_id]++
+        //console.log(JSON.stringify(this.vec))
     }
-    send(){
-        this.vec[this.node_id]++
+    send(node_id){
+        this.vec[node_id]++
         return {...this.vec}
     }
 }
