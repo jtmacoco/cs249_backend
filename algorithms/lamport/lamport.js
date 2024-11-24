@@ -6,6 +6,9 @@ export default class VectorClock{
     get_vector(){
         return {...this.vec}
     }
+    get_docId(){
+        return this.doc_id
+    }
     add(node_id){
             this.vec[node_id] = 0
     }
@@ -16,17 +19,16 @@ export default class VectorClock{
     event(node_id){
         this.vec[node_id]++
     }
-    receive(node_id,received_vec){
+    receive(received_vec){
         for (const[node,time] of Object.entries(received_vec)){
-            //console.log(`node: ${node}`)
+            console.log(`node: ${node} time: ${time}`)
             if(!(node in this.vec))
             {
                 this.vec[node] = 0
             }
             this.vec[node] = Math.max(this.vec[node],time)
         }
-        //this.vec[node_id]++
-        //console.log(JSON.stringify(this.vec))
+        
     }
     send(node_id){
         this.vec[node_id]++

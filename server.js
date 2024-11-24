@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
             cache.set(DocId, { value: "", vectorClock: vc })
         }
         const docData = cache.get(DocId)
-        socket.emit('firstJoin', docData.value)
+        socket.emit('firstJoin', {docData:docData.value,vectorClock:docData.vectorClock.get_vector()})
     })
     socket.on('documentUpdate', ({ changes, DocId, uid, vc }) => {
         const docData = cache.get(DocId);
@@ -102,9 +102,9 @@ io.on('connection', (socket) => {
         curDoc = lines.join('\n')
         range = { startLineNumber: startLine, startColumn: startCol, endLineNumber: startLine, endColumn: startCol + 1 }
         const curVc = docData.vectorClock;
-        curVc.receive(uid, vc);
+        curVc.receive(vc);
         cache.set(DocId, { value: curDoc, vectorClock: curVc });
-        socket.to(DocId).emit('documentUpdate', changesLog)
+        socket.to(DocId).emit('documentUpdate', {content:changesLog,vectorClock:curVc})
 
     })
 })
