@@ -1,14 +1,16 @@
+import VectorClock from "../lamport/lamport.js";
 export default class CrdtRga {
-    constructor(initialDoc = "") {
+    constructor(initialDoc = "",DocId) {
         this.curDoc = initialDoc
         this.lines = initialDoc.split('\n');
+        this.vc = new VectorClock(DocId)
     }
     getDoc(){
         return this.curDoc
     }
-    applyChanges(changes) {
+    applyChanges(changes,newVc) {
         let changesLog = [];
-
+        this.vc.receive(newVc)
         for (let { range, text, type } of changes) {
             const { startLineNumber: sln, startColumn: sc, endLineNumber: eln, endColumn: ec } = range;
 
@@ -24,6 +26,7 @@ export default class CrdtRga {
                         text: '\n'
                     });
                 } else {
+                    
                     // Inserting text on the same line
                     this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1) + text + this.lines[sln - 1].slice(ec);
                     changesLog.push({
@@ -34,6 +37,7 @@ export default class CrdtRga {
                 }
             } else if (type === 'delete') {
                 if (sc === 1 && sln > 1) {
+                    console.log("test")
                     // Deleting a whole line and merging with the previous line
                     const curLine = this.lines[sln - 1];
                     const prevLine = this.lines[sln - 2];
@@ -47,7 +51,17 @@ export default class CrdtRga {
                 } else {
                     // Deleting text on the same line
                     const deletedText = this.lines[sln - 1].slice(sc - 1, ec - 1);
+                    if(sln!=eln){//if select multiple lines using ctrl a or something handle
+                        this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1) 
+                        this.lines = [
+                            ...this.lines.slice(0, sln - 1),  // lines before sln
+                            this.lines[eln - 1].slice(ec-1),  // modified eln line
+                            ...this.lines.slice(eln)  // lines after eln
+                        ];
+                    }
+                    else{
                     this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1) + this.lines[sln - 1].slice(ec - 1);
+                    }
 
                     changesLog.push({
                         type: 'delete',
@@ -60,5 +74,17 @@ export default class CrdtRga {
         this.curDoc=this.lines.join('\n')
         //console.log("curDoc:",this.curDoc,"changesLog:",changesLog)
         return {curDoc:this.curDoc,changesLog:changesLog}
+    }
+    merge(conflictData){
+        const {changes,conflictVc} = conflictData
+        /*
+        changes.sort((changeA, changeB) => {
+            const vcA = changeA.vc;  
+            const vcB = changeB.vc;
+            
+            return vcA.compareTo(vcB);  
+        });
+        */
+        //confused 
     }
 }
