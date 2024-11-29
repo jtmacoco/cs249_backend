@@ -3,6 +3,13 @@ export default class VectorClock{
         this.vec = {}
         this.doc_id = doc_id
     }
+    reset(){
+        for (const key in this.vec) {
+            if (this.vec.hasOwnProperty(key)) {
+              this.vec[key] = 0;
+            }
+          }
+    }
     get_vector(){
         return {...this.vec}
     }
@@ -32,6 +39,24 @@ export default class VectorClock{
         this.vec[node_id]++
         return {...this.vec}
     }
+    inPast(incomingVc,docId){
+        if(docId!=this.doc_id){
+            console.log("yes it was false")
+            return false
+        }
+        const v1 = this.vec
+        const v2 = incomingVc
+        if(!v1 || !v2){
+            return false
+        }
+        for (const [node, time2] of Object.entries(v2)) {
+            const time1 = v1[node] || 0;  
+            if (!(time2 < time1)) {
+                return false
+            } 
+        }
+        return true
+    }
     isConcurrent(otherVc,docID){
         if(docID!=this.doc_id){
             console.log("yes it was false")
@@ -47,25 +72,17 @@ export default class VectorClock{
         let v2Beforev1 = true 
         for(const[node,time1] of Object.entries(v1)){
             const time2 = v2[node] || 0
-            if(time1<time2){
+            if(!(time1<=time2)){
                 v1Beforev2=false
-                conflictingNodes.add(node);
-            }
-            else if(time1>time2){
-                v2Beforev1=false
                 conflictingNodes.add(node);
             }
         }
         for (const [node, time2] of Object.entries(v2)) {
             const time1 = v1[node] || 0;  
-            //console.log("node:",node,"time1:",time1,"time2:",time2)
-            if (time2 < time1) {
-                v2Beforev1 = false;  // v2 is behind v1 for this node
+            if (!(time2 <= time1)) {
+                v2Beforev1 = false;  
                 conflictingNodes.add(node);
-            } else if (time2 > time1) {
-                v1Beforev2 = false;  // v1 is behind v2 for this node
-                conflictingNodes.add(node);
-            }
+            } 
         }
         return {isConcurrent:!(v1Beforev2 || v2Beforev1),
             conflictingNodes:Array.from(conflictingNodes)
