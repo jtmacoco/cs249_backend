@@ -6,12 +6,9 @@ import http from 'http';
 import mongoose from 'mongoose';
 import VectorClock from './algorithms/vectorClock/vectorClock.js';
 import CrdtRga from './algorithms/crdt/crdt.js';
-import { isContext } from 'vm';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const db_pass = process.env.DB_PASS;
-const user = process.env.UNAME;
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -22,17 +19,6 @@ const io = new Server(server, {
 });
 const options = { max: 10, allowStale: false }
 const cache = new LRUCache(options)
-const uri = `mongodb+srv://${user}:${db_pass}@cluster0.t4uwd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
-const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
-async function connectDB() {
-    try {
-        await mongoose.connect(uri, clientOptions)
-        console.log("success connected to db")
-    }
-    catch (error) {
-        console.log(error)
-    }
-}
 io.on('connection', (socket) => {
     socket.on('joinDocument', ({ DocId, uid }) => {
         socket.join(DocId)
@@ -78,7 +64,6 @@ io.on('connection', (socket) => {
             }
         }
         else {
-
             const crdtChanges = crdt.applyChanges(changes, vc)
             curDoc = crdtChanges.curDoc
             const changesLog = crdtChanges.changesLog
@@ -90,5 +75,6 @@ io.on('connection', (socket) => {
 
     })
 })
-connectDB()
+console.log("SockeServer")
+
 server.listen(PORT, () => { console.log(`starting server using port ${PORT}`) })
