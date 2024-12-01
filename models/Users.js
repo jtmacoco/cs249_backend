@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
         }
     },
     sharedDocs:{
-        documents:[{type:mongoose.Schema.Types.ObjectId, ref: "Document",}],
+        sharedDocs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
     },
     createdAt:{
         type:Date,

@@ -5,10 +5,13 @@ dotenv.config();
 //Fetch shared documents
 const getSharedDocs = async (req, res) => {
     try {
-        console.log({username: req.body.username})
-        const documents = await DocumentService.getSharedDocs({username: req.body.username}, {sharedDocs: 1});
-        if (!documents || documents.length === 0) {
-            return res.status(404).json({ message: "No shared documents found for this user." });
+        //console.log({email: req.query.email})
+        const documents = await DocumentService.getSharedDocs({email: req.query.email}, {sharedDocs: 1});
+        if (!documents) {
+            return res.status(404).json({ message: "Incorrect User" });
+        }
+        else if(documents.length === 0){
+            return res.status(200).json({ message: "No shared documents found for this user." });
         }
         res.json(documents);
     } catch (err) {
@@ -27,7 +30,7 @@ const shareDocument = async (req, res) => {
             return res.status(400).json({ message: "Document ID is required." });
         }
 
-        const success = await DocumentService.shareDocument(req.params.username, documentId);
+        const success = await DocumentService.shareDocument(req.query.email, documentId);
         if (!success) {
             return res.status(404).json({ message: "User or document not found, or sharing failed." });
         }

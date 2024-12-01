@@ -1,18 +1,21 @@
-import User from "../../models/Users.js";
+import user from "../../models/Users.js";
 import Document from "../../models/Document.js";
 import mongoose from 'mongoose';
 
 //Fetch shared documents
 const getSharedDocs = async (query,fields) => {
+    console.log("Getting Shared Documents")
     try {
-        //console.log(query)
-        const user = await User.findOne({query}).select(fields).exec()
+        const users = await user.find();
+        console.log(users)
+        console.log(query)
+        const urr_user = await user.findOne({query}, {fields})
 
-        if (!user) {
+        if (!urr_user) {
             console.error(`User not found.`);
             return null;
         }
-        res_array = user.sharedDocs
+        res_array = urr_user.sharedDocs
         return {
             res_array
         }
@@ -25,8 +28,8 @@ const getSharedDocs = async (query,fields) => {
 //Share a document with a user
 const shareDocument = async (username, documentId) => {
     try {
-        const user = await User.findOne({ username });
-        if (!user) {
+        const urr_user = await user.findOne({ username });
+        if (!urr_user) {
             console.error(`User not found.`);
             return false;
         }
@@ -39,12 +42,12 @@ const shareDocument = async (username, documentId) => {
         }
 
         //Check if document is already shared
-        const isAlreadyShared = user.sharedDocs.documents.some(
+        const isAlreadyShared = urr_user.sharedDocs.documents.some(
             (docId) => docId.toString() === documentId.toString()
         );
         if (!isAlreadyShared) {
-            user.sharedDocs.documents.push(documentId);
-            await user.save();
+            urr_user.sharedDocs.documents.push(documentId);
+            await urr_user.save();
             console.log(`Document ${documentId} shared with user ${username}.`);
         } else {
             console.log(`Document ${documentId} is already shared with user ${username}.`);
