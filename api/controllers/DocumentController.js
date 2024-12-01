@@ -2,7 +2,9 @@ import DocumentService from "../services/DocumentService.js";
 
 //Fetch shared documents
 const getSharedDocs = async (req, res) => {
+    console.log("DEBUG : Getting Shared Document List from User")
     try {
+        console.log("DEBUG : Getting Shared Document List from User: ", req.params.username)
         const documents = await DocumentService.getSharedDocs(req.params.username);
         if (!documents || documents.length === 0) {
             return res.status(404).json({ message: "No shared documents found for this user." });
