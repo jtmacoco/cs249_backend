@@ -9,12 +9,17 @@ const getSharedDocs = async (username) => {
             model: "Document",
         });
 
-        return user ? user.sharedDocs.documents : null;
+        if (!user) {
+            throw new Error(`User with username ${username} not found`);
+        }
+
+        return user.sharedDocs.documents;
     } catch (err) {
         console.error("Error in DocumentService.getSharedDocs:", err);
         throw err;
     }
 };
+
 
 //Share a document with a user
 const shareDocument = async (username, documentId) => {
@@ -24,6 +29,14 @@ const shareDocument = async (username, documentId) => {
             return false;
         }
 
+        // Ensure the document exists
+        const document = await Document.findById(documentId);
+        if (!document) {
+            console.error(`Document with ID ${documentId} not found`);
+            return false;
+        }
+
+        // Add the document if it doesn't already exist in the user's sharedDocs
         if (!user.sharedDocs.documents.includes(documentId)) {
             user.sharedDocs.documents.push(documentId);
             await user.save();
@@ -34,5 +47,6 @@ const shareDocument = async (username, documentId) => {
         throw err;
     }
 };
+
 
 export default { getSharedDocs, shareDocument };
