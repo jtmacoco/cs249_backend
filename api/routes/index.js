@@ -8,8 +8,8 @@ apiRouter.route("/user/register").post(userController.register)
 apiRouter.route("/user/login").post(userController.login)
 
 // Document routes
-apiRouter.get("/document/:username/shared-docs", documentController.getSharedDocs);
-apiRouter.post("/document/:username/share-doc", documentController.shareDocument);
+apiRouter.route("/document/shared-docs").get(documentController.getSharedDocs)
+apiRouter.route("/document/share-doc").post(documentController.shareDocument)
 
 export default apiRouter
 

@@ -1,20 +1,21 @@
 import User from "../../models/Users.js";
 import Document from "../../models/Document.js";
+import mongoose from 'mongoose';
 
 //Fetch shared documents
-const getSharedDocs = async (username) => {
+const getSharedDocs = async (query,fields) => {
     try {
-        const user = await User.findOne({ username }).populate({
-            path: "sharedDocs.documents",
-            model: "Document",
-        });
+        //console.log(query)
+        const user = await User.findOne({query}).select(fields).exec()
 
         if (!user) {
-            console.error(`User with username ${username} not found.`);
+            console.error(`User not found.`);
             return null;
         }
-
-        return user.sharedDocs.documents;
+        res_array = user.sharedDocs
+        return {
+            res_array
+        }
     } catch (err) {
         console.error("Error in DocumentService.getSharedDocs:", err);
         throw new Error("Failed to fetch shared documents.");
@@ -26,7 +27,7 @@ const shareDocument = async (username, documentId) => {
     try {
         const user = await User.findOne({ username });
         if (!user) {
-            console.error(`User with username ${username} not found.`);
+            console.error(`User not found.`);
             return false;
         }
 

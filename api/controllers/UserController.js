@@ -39,6 +39,8 @@ const register = async (req, res) => {
     }
 }
 const login = async(req,res)=>{
+    console.log("DEBUG : user login start for :")
+    console.log({email: req.body.email})
     try{
         const user = await UserServices.getUser({email: req.body.email})
         if(user===null){

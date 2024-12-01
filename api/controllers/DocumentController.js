@@ -1,11 +1,12 @@
 import DocumentService from "../services/DocumentService.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 //Fetch shared documents
 const getSharedDocs = async (req, res) => {
-    console.log("DEBUG : Getting Shared Document List from User")
     try {
-        console.log("DEBUG : Getting Shared Document List from User: ", req.params.username)
-        const documents = await DocumentService.getSharedDocs(req.params.username);
+        console.log({username: req.body.username})
+        const documents = await DocumentService.getSharedDocs({username: req.body.username}, {sharedDocs: 1});
         if (!documents || documents.length === 0) {
             return res.status(404).json({ message: "No shared documents found for this user." });
         }
