@@ -1,5 +1,5 @@
-import User from "../models/User.js";
-import Document from "../models/Document.js";
+import User from "../../models/Users.js";
+import Document from "../../models/Document.js";
 
 //Fetch shared documents
 const getSharedDocs = async (username) => {
