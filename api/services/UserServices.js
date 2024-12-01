@@ -16,6 +16,10 @@ const registerUser=async(body)=>{
     }
 }
 const getUser = async(query,fields) =>{
+    console.log("getUser called")
+    console.log(query)
+    console.log("------------")
+    //console.log(fields)
     const cur_user = await user.findOne({ ...query}).select(fields).exec();
     if (!cur_user){
         return null

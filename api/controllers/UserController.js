@@ -39,8 +39,8 @@ const register = async (req, res) => {
     }
 }
 const login = async(req,res)=>{
-    console.log("DEBUG : user login start for :")
-    console.log({email: req.body.email})
+    //console.log("DEBUG : user login start for :")
+    //console.log({email: req.body.email})
     try{
         const user = await UserServices.getUser({email: req.body.email})
         if(user===null){
@@ -80,7 +80,7 @@ const getname = async(req,res)=>{
         return res.json({
             success:true,
             data:user.username,
-            message:'successfully logged in user :)',
+            message:'successfully aquired username',
         })
     }
     catch(e){

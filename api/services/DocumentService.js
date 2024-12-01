@@ -4,21 +4,21 @@ import mongoose from 'mongoose';
 
 //Fetch shared documents
 const getSharedDocs = async (query,fields) => {
-    console.log("Getting Shared Documents")
     try {
-        const users = await user.find();
-        console.log(users)
+        console.log("Getting Shared Documents")
+        //const users = await user.find();
+        //console.log(users)
         console.log(query)
-        const urr_user = await user.findOne({query}, {fields})
+        console.log(fields)
+        console.log("----------")
+        const urr_user = await user.findOne(query, {fields}).populate('sharedDocs', 'name').exec();
 
         if (!urr_user) {
             console.error(`User not found.`);
             return null;
         }
-        res_array = urr_user.sharedDocs
-        return {
-            res_array
-        }
+        console.log("Array content", urr_user.sharedDocs)
+        return urr_user.sharedDocs
     } catch (err) {
         console.error("Error in DocumentService.getSharedDocs:", err);
         throw new Error("Failed to fetch shared documents.");

@@ -5,8 +5,10 @@ dotenv.config();
 //Fetch shared documents
 const getSharedDocs = async (req, res) => {
     try {
-        //console.log({email: req.query.email})
-        const documents = await DocumentService.getSharedDocs({email: req.query.email}, {sharedDocs: 1});
+        //console.log("getSharedDoc called")
+        //console.log(req.body)
+        //console.log("---------------")
+        const documents = await DocumentService.getSharedDocs(req.body, {sharedDocs: 1});
         if (!documents) {
             return res.status(404).json({ message: "Incorrect User" });
         }
@@ -20,6 +22,7 @@ const getSharedDocs = async (req, res) => {
     }
 };
 
+/*
 //Share a document with a user
 const shareDocument = async (req, res) => {
     try {
@@ -42,4 +45,6 @@ const shareDocument = async (req, res) => {
     }
 };
 
-export default { getSharedDocs, shareDocument };
+*/
+
+export default { getSharedDocs};
