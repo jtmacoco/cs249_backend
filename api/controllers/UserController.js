@@ -66,7 +66,30 @@ const login = async(req,res)=>{
         })
     }
 }
+const getname = async(req,res)=>{
+    try{
+        const user = await UserServices.getUser({email: req.body.email})
+        if(user===null){
+            return res.json({
+                success:false,
+                message:'user doesn\'t exist',
+                })
+        }
+        return res.json({
+            success:true,
+            data:user.username,
+            message:'successfully logged in user :)',
+        })
+    }
+    catch(e){
+        return res.status(400).json({
+            success:false,
+            message:`Error occured sorry lol ${e}`
+        })
+    }
+}
 export default {
     register,
     login,
+    getname,
 }
