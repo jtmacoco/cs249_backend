@@ -1,5 +1,7 @@
 import mongoose from "mongoose"
 import hashPassword from "../api/passHash.js";
+import Document from "./Document.js";
+
 const userSchema = new mongoose.Schema({
     username:{
         type: String,
@@ -27,9 +29,7 @@ const userSchema = new mongoose.Schema({
             message: props => "Password must be at least 8 characters, with a mix of letters and numbers"
         }
     },
-    sharedDocs:{
-        sharedDocs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
-    },
+    sharedDocs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
     createdAt:{
         type:Date,
         default:Date.now,

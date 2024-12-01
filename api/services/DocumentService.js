@@ -2,8 +2,9 @@ import user from "../../models/Users.js";
 import Document from "../../models/Document.js";
 import mongoose from 'mongoose';
 
+
 //Fetch shared documents
-const getSharedDocs = async (query,fields) => {
+const getSharedDocs = async (query, fields) => {
     try {
         console.log("Getting Shared Documents")
         //const users = await user.find();
@@ -11,14 +12,17 @@ const getSharedDocs = async (query,fields) => {
         console.log(query)
         console.log(fields)
         console.log("----------")
-        const urr_user = await user.findOne(query, {fields}).populate('sharedDocs', 'name').exec();
-
-        if (!urr_user) {
+        const curr_user = await user.findOne(query, fields).populate('sharedDocs', 'name').exec();
+        if (!curr_user) {
             console.error(`User not found.`);
             return null;
         }
-        console.log("Array content", urr_user.sharedDocs)
-        return urr_user.sharedDocs
+        //console.log("Array content", urr_user.sharedDocs)
+        console.log("Array content: ", curr_user.sharedDocs)
+        for (const sharedDoc of curr_user.sharedDocs) {
+            console.log(sharedDoc)
+        }
+        return curr_user.sharedDocs
     } catch (err) {
         console.error("Error in DocumentService.getSharedDocs:", err);
         throw new Error("Failed to fetch shared documents.");
@@ -26,34 +30,44 @@ const getSharedDocs = async (query,fields) => {
 };
 
 //Share a document with a user
-const shareDocument = async (username, documentId) => {
+const shareDocument = async (content) => {
     try {
-        const urr_user = await user.findOne({ username });
-        if (!urr_user) {
+        console.log("DocumentID: %s, email: %s", content.documentId, content.recipient)
+        const curr_user = await user.findOne({ email: content.recipient });
+        if (!curr_user) {
             console.error(`User not found.`);
-            return false;
+            return 0;
         }
-
+        //console.log(curr_user)
         //Ensure the document exists
-        const document = await Document.findById(documentId);
+        const document = await Document.findById(content.documentId);
         if (!document) {
-            console.error(`Document with ID ${documentId} not found.`);
-            return false;
+            console.error(`Document with ID ${content.documentId} not found.`);
+            return 1;
         }
 
-        //Check if document is already shared
-        const isAlreadyShared = urr_user.sharedDocs.documents.some(
-            (docId) => docId.toString() === documentId.toString()
-        );
-        if (!isAlreadyShared) {
-            urr_user.sharedDocs.documents.push(documentId);
-            await urr_user.save();
-            console.log(`Document ${documentId} shared with user ${username}.`);
-        } else {
-            console.log(`Document ${documentId} is already shared with user ${username}.`);
+        // Add the document to the user's shared documents
+        try {
+            const res = await user.updateOne(
+                { email: content.recipient },
+                { $addToSet: { sharedDocs: content.documentId } }
+            );
+            if (res.matchedCount === 0) {
+                console.error(`No user found with email ${content.recipient}.`);
+                return 0;
+            }
+            if (res.modifiedCount === 0) {
+                console.log(`Document with ID ${content.documentId} was already shared with user ${content.recipient}.`);
+                return 2;
+            }
+            if (res.modifiedCount > 0) {
+                console.log(`Document with ID ${content.documentId} successfully shared with user ${content.recipient}.`);
+                return 3;
+            }
+        } catch (err) {
+            console.error(`Error updating shared document in MongoDB: ${err}`);
+            return 4;
         }
-
-        return true;
     } catch (err) {
         console.error("Error in DocumentService.shareDocument:", err);
         throw new Error("Failed to share document.");
