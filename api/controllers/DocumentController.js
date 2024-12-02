@@ -35,7 +35,7 @@ const shareDocument = async (req, res) => {
         }
 
         const success = await DocumentService.shareDocument(req.body);
-        
+
         switch (success) {
             case 0: // User not found
                 return res.status(404).json({ message: "User not found." });
@@ -56,6 +56,23 @@ const shareDocument = async (req, res) => {
     }
 };
 
+const getMyDocs = async (req, res) => {
+    try{
+        console.log("getMyDocs called")
+        const documents = await DocumentService.getMyDocs(req.body);
+        if (!documents) {
+            return res.status(404).json({ message: "Incorrect User" });
+        }
+        else if (documents.length === 0) {
+            return res.status(200).json({ message: "No shared documents found for this user." });
+        }
 
+        res.json(documents);
+    }catch (err) {
+        console.error("Error fetching shared documents:", err);
+        res.status(500).json({ message: "Internal server error while fetching shared documents." });
+    }
+    
+}
 
-export default { getSharedDocs, shareDocument };
+export default { getSharedDocs, shareDocument , getMyDocs};

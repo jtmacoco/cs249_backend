@@ -10,6 +10,7 @@ apiRouter.route("/user/login").post(userController.login)
 // Document routes
 apiRouter.route("/document/shared-docs").post(documentController.getSharedDocs)
 apiRouter.route("/document/share-doc").post(documentController.shareDocument)
+apiRouter.route("/document/my-doc").post(documentController.getMyDocs)
 
 export default apiRouter
 

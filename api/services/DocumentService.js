@@ -9,18 +9,18 @@ const getSharedDocs = async (query, fields) => {
         console.log("Getting Shared Documents")
         //const users = await user.find();
         //console.log(users)
-        console.log(query)
-        console.log(fields)
-        console.log("----------")
+        //console.log(query)
+        //console.log(fields)
+        //console.log("----------")
         const curr_user = await user.findOne(query, fields).populate('sharedDocs', 'name').exec();
         if (!curr_user) {
             console.error(`User not found.`);
             return null;
         }
         //console.log("Array content", urr_user.sharedDocs)
-        console.log("Array content: ", curr_user.sharedDocs)
+        //console.log("Array content: ", curr_user.sharedDocs)
         for (const sharedDoc of curr_user.sharedDocs) {
-            console.log(sharedDoc)
+            //console.log(sharedDoc)
         }
         return curr_user.sharedDocs
     } catch (err) {
@@ -74,4 +74,24 @@ const shareDocument = async (content) => {
     }
 };
 
-export default { getSharedDocs, shareDocument };
+const getMyDocs = async (query, fields) => {
+    try{
+        console.log("Getting Documents")
+        const curr_user = await user.findOne(query);
+        if (!curr_user) {
+            console.log('User not found');
+            return [];
+        }
+        console.log("User ID: ", curr_user._id)
+        // Step 2: Find all documents owned by the user
+        const documents = await Document.find({ owner: curr_user._id });
+        console.log(documents)
+        return documents;
+    }catch (err) {
+        console.error("Error in DocumentService.getMyDocs:", err);
+        throw new Error("Failed to fetch documents.");
+    }
+    
+}
+
+export default { getSharedDocs, shareDocument, getMyDocs};
