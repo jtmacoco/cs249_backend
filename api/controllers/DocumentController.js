@@ -28,7 +28,7 @@ const getSharedDocs = async (req, res) => {
 //Share a document with a user
 const shareDocument = async (req, res) => {
     try {
-        console.log(req.body)
+        //console.log(req.body)
         // Validate input
         if (!req.body.documentId) {
             return res.status(400).json({ message: "Document ID is required." });

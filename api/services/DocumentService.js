@@ -8,7 +8,7 @@ import User from "../../models/Users.js";
 //Fetch shared documents
 const getSharedDocs = async (query, fields) => {
     try {
-        console.log("Getting Shared Documents")
+        //console.log("Getting Shared Documents")
         //const users = await user.find();
         //console.log(users)
         //console.log(query)
@@ -34,7 +34,7 @@ const getSharedDocs = async (query, fields) => {
 //Share a document with a user
 const shareDocument = async (content) => {
     try {
-        console.log("DocumentID: %s, email: %s", content.documentId, content.recipient)
+        //console.log("DocumentID: %s, email: %s", content.documentId, content.recipient)
         const curr_user = await user.findOne({ email: content.recipient });
         if (!curr_user) {
             console.error(`User not found.`);
@@ -59,7 +59,7 @@ const shareDocument = async (content) => {
                 return 0;
             }
             if (res.modifiedCount === 0) {
-                console.log(`Document with ID ${content.documentId} was already shared with user ${content.recipient}.`);
+                //console.log(`Document with ID ${content.documentId} was already shared with user ${content.recipient}.`);
                 return 2;
             }
             if (res.modifiedCount > 0) {
@@ -81,7 +81,7 @@ const getMyDocs = async (query, fields) => {
         //console.log("Getting Documents")
         const curr_user = await user.findOne(query);
         if (!curr_user) {
-            console.log('User not found');
+            //console.log('User not found');
             return [];
         }
         //console.log("User ID: ", curr_user._id)
@@ -104,7 +104,7 @@ const createDoc = async(body)=>{
         const newDoc = await Document.create({name:docName,owner:uid})
         return newDoc
     }catch(error){
-        console.log("error in creating document:",error)
+        //console.log("error in creating document:",error)
         throw new Error(error)
     }
 }
