@@ -15,7 +15,6 @@ const getSharedDocs = async (query, fields) => {
         //console.log(fields)
         //console.log("----------")
         const curr_user = await user.findOne(query, fields).populate('sharedDocs', 'name').exec();
-        const isUserAlive = await UserServices.getUser(query,fields)
         if (!curr_user) {
             console.error(`User not found.`);
             return null;
@@ -79,16 +78,16 @@ const shareDocument = async (content) => {
 
 const getMyDocs = async (query, fields) => {
     try{
-        console.log("Getting Documents")
+        //console.log("Getting Documents")
         const curr_user = await user.findOne(query);
         if (!curr_user) {
             console.log('User not found');
             return [];
         }
-        console.log("User ID: ", curr_user._id)
+        //console.log("User ID: ", curr_user._id)
         // Step 2: Find all documents owned by the user
         const documents = await Document.find({ owner: curr_user._id });
-        console.log(documents)
+        //console.log(documents)
         return documents;
     }catch (err) {
         console.error("Error in DocumentService.getMyDocs:", err);
@@ -97,4 +96,17 @@ const getMyDocs = async (query, fields) => {
     
 }
 
-export default { getSharedDocs, shareDocument, getMyDocs};
+const createDoc = async(body)=>{
+    try{
+        const docName = body['name']
+        const userdata = await UserServices.getUser({email:body['email']})//need to grab uid
+        const uid = userdata['_id']
+        const newDoc = await Document.create({name:docName,owner:uid})
+        return newDoc
+    }catch(error){
+        console.log("error in creating document:",error)
+        throw new Error(error)
+    }
+}
+
+export default { getSharedDocs, shareDocument, getMyDocs,createDoc};

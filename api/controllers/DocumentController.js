@@ -58,7 +58,7 @@ const shareDocument = async (req, res) => {
 
 const getMyDocs = async (req, res) => {
     try{
-        console.log("getMyDocs called")
+        //console.log("getMyDocs called")
         const documents = await DocumentService.getMyDocs(req.body);
         if (!documents) {
             return res.status(404).json({ message: "Incorrect User" });
@@ -75,4 +75,24 @@ const getMyDocs = async (req, res) => {
     
 }
 
-export default { getSharedDocs, shareDocument , getMyDocs};
+const createNewDocument = async (req,res) =>{
+    try{
+        const newDocument = await DocumentService.createDoc(req.body)
+        if(!newDocument){
+            return res.json({
+                message:"something went wrong when creating a new document"
+            })
+        }
+        else{
+            return res.status(200).json({
+                message:"success",
+                data:newDocument,
+            })
+        }
+    }catch(error){
+        //console.log("error in createNewDocument function:",error)
+        throw error
+    }
+}
+
+export default { getSharedDocs, shareDocument , getMyDocs, createNewDocument};

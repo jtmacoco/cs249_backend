@@ -8,7 +8,7 @@ const documentSchema = new mongoose.Schema({
     },
     content: {
         type: String,
-        required: true,
+        default:"",
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
