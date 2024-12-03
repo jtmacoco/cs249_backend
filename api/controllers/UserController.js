@@ -58,7 +58,7 @@ const login = async(req,res)=>{
         }
         return res.json({
             success:true,
-            data:user.username,
+            data:user.email,
             message:'successfully logged in user :)',
         })
     }catch(e){

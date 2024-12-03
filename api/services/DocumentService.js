@@ -1,6 +1,8 @@
 import user from "../../models/Users.js";
 import Document from "../../models/Document.js";
+import UserServices from "./UserServices.js";
 import mongoose from 'mongoose';
+import User from "../../models/Users.js";
 
 
 //Fetch shared documents
@@ -13,6 +15,7 @@ const getSharedDocs = async (query, fields) => {
         //console.log(fields)
         //console.log("----------")
         const curr_user = await user.findOne(query, fields).populate('sharedDocs', 'name').exec();
+        const isUserAlive = await UserServices.getUser(query,fields)
         if (!curr_user) {
             console.error(`User not found.`);
             return null;
