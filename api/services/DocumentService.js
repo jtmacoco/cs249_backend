@@ -95,6 +95,14 @@ const getMyDocs = async (query, fields) => {
     }
     
 }
+const getDocument = async(query,fields)=>{
+    try{
+    const document = await Document.findById(query)
+    return document
+    }catch(error){
+        throw new Error(error)
+    }
+}
 
 const createDoc = async(body)=>{
     try{
@@ -109,4 +117,4 @@ const createDoc = async(body)=>{
     }
 }
 
-export default { getSharedDocs, shareDocument, getMyDocs,createDoc};
+export default { getSharedDocs, shareDocument, getMyDocs,createDoc,getDocument};

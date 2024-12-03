@@ -74,7 +74,23 @@ const getMyDocs = async (req, res) => {
     }
     
 }
-
+const getDocument = async(req,res) =>{
+    try{
+        const document = await DocumentService.getDocument(req.body)
+        if(!document){
+            return res.json({
+                message:"error grabbing document"
+            })
+        }
+        return res.status(200).json({
+            data:document['name']
+        })
+    }catch(error){
+        return res.status(500).json({
+            message:error
+        })
+    }
+}
 const createNewDocument = async (req,res) =>{
     try{
         const newDocument = await DocumentService.createDoc(req.body)
@@ -95,4 +111,4 @@ const createNewDocument = async (req,res) =>{
     }
 }
 
-export default { getSharedDocs, shareDocument , getMyDocs, createNewDocument};
+export default { getSharedDocs, shareDocument , getMyDocs, createNewDocument, getDocument};
