@@ -77,7 +77,7 @@ const shareDocument = async (content) => {
 };
 
 const getMyDocs = async (query, fields) => {
-    try{
+    try {
         //console.log("Getting Documents")
         const curr_user = await user.findOne(query);
         if (!curr_user) {
@@ -89,32 +89,48 @@ const getMyDocs = async (query, fields) => {
         const documents = await Document.find({ owner: curr_user._id });
         //console.log(documents)
         return documents;
-    }catch (err) {
+    } catch (err) {
         console.error("Error in DocumentService.getMyDocs:", err);
         throw new Error("Failed to fetch documents.");
     }
-    
+
 }
-const getDocument = async(query,fields)=>{
-    try{
-    const document = await Document.findById(query)
-    return document
-    }catch(error){
+const getDocument = async (query, fields) => {
+    try {
+        const document = await Document.findById(query)
+        return document
+    } catch (error) {
+        console.log(error)
         throw new Error(error)
     }
 }
 
-const createDoc = async(body)=>{
-    try{
+const updateDocuments = async (query) => {
+    try {
+        console.log("QUERY:",query)
+        const update = Document.updateOne(
+            {_id:query['_id']},
+            {$set:{content:query['content']}},
+            {$set:{vectorClock:query['vectorClock']}},
+
+        )
+        return update
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const createDoc = async (body) => {
+    try {
         const docName = body['name']
-        const userdata = await UserServices.getUser({email:body['email']})//need to grab uid
+        const userdata = await UserServices.getUser({ email: body['email'] })//need to grab uid
         const uid = userdata['_id']
-        const newDoc = await Document.create({name:docName,owner:uid})
+        const newDoc = await Document.create({ name: docName, owner: uid })
         return newDoc
-    }catch(error){
+    } catch (error) {
         //console.log("error in creating document:",error)
         throw new Error(error)
     }
 }
 
-export default { getSharedDocs, shareDocument, getMyDocs,createDoc,getDocument};
+export default { getSharedDocs, shareDocument, getMyDocs, createDoc, getDocument,updateDocuments };

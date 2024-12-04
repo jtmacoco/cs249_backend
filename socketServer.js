@@ -1,14 +1,19 @@
-import 'dotenv/config'; 
+import 'dotenv/config';
 import express from 'express';
 import { LRUCache } from 'lru-cache';
 import { Server } from 'socket.io';
 import http from 'http';
-import mongoose from 'mongoose';
 import VectorClock from './algorithms/vectorClock/vectorClock.js';
 import CrdtRga from './algorithms/crdt/crdt.js';
+import DocumentController from './api/controllers/DocumentController.js';
+import DocumentService from './api/services/DocumentService.js';
+import Api from './handleApi.js';
+import { socketGetDoc, socketSaveDoc } from './socketCtrl.js';
+
+
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.SOCKET_PORT || 3000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -17,50 +22,106 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
-const options = { max: 10, allowStale: false }
+const options = {
+    max: 10, allowStale: false, ttl: 300000,
+    updateAgeOnGet: true,
+    updateAgeOnHas: true,
+    noDisposeOnSet: true,
+    allowStale: true,
+    disposeAfter: (value, key) => {
+        //console.log(`Key: ${key}, Value: ${JSON.stringify(value['value'])} has been fully removed.`);
+        const curDoc = value['value']
+        const curVc= value['vectorClock']
+        socketSaveDoc({_id:key, content:curDoc, vectorClock:curVc})
+    }
+}
 const cache = new LRUCache(options)
+setInterval(() => {
+    for (const [key] of cache.entries()) {
+        cache.get(key); 
+    }
+}, 11000); 
+
+setInterval(() => {
+    console.log("interval")
+    for (const [key, value] of cache.entries()) {
+        console.log("saving")
+        const curDoc = value['value']
+        const curVc = value ['vectorClock']
+        socketSaveDoc({_id:key, content:curDoc, VectorClock:curVc})
+    }
+}, 30000); // 30 seconds
 io.on('connection', (socket) => {
-    socket.on('joinDocument', ({ DocId, uid }) => {
+    socket.on('joinDocument', async ({ DocId, uid }) => {
         socket.join(DocId)
+        console.log("first Join")
         if (!cache.get(DocId)) {//change this to grab from mongodb later
-            const vc = new VectorClock(DocId)
-            const crdt = new CrdtRga("", DocId)
+            new VectorClock(DocId)
+            let crdt = null
+            const curTime = Math.floor(Date.now() / 1000);
+            let {curDoc,vc} = await socketGetDoc({_id:DocId})
+            if(Object.keys(vc).length==0){
+                vc = new VectorClock(DocId)
+            }
+            if(curDoc===undefined){
+                curDoc=""
+                crdt= new CrdtRga("", DocId)
+            }
+            else{
+                crdt= new CrdtRga(curDoc,DocId)
+            }
             vc.checkInVec(uid)
-            const curTime= Math.floor(Date.now() / 1000);
-            cache.set(DocId, { value: crdt.getDoc(), vectorClock: vc, crdt: crdt,recentTime:curTime })
+            cache.set(DocId, { value: curDoc, vectorClock: vc, crdt: crdt, recentTime: curTime })
         }
         const docData = cache.get(DocId)
         socket.emit('firstJoin', { docData: docData.value, vectorClock: docData.vectorClock.get_vector() })
     })
-    socket.on('documentUpdate', ({ changes, DocId, uid, vc, curTime }) => {
-        const docData = cache.get(DocId)
-        let curDoc =docData.value
-        let curChanges = changes
-        let crdt = docData.crdt
-        let curVc = docData.vectorClock;
-        let recentTime = docData.recentTime
-        const {isConcurrent,conflictingNodes} = curVc.isConcurrent(vc,DocId)
-        const interval = Number(curTime) - Number(recentTime);
-        if (isConcurrent||interval<=1)
+    socket.on('documentUpdate', async ({ changes, DocId, uid, vc, curTime }) => {
+        let docData = null
+        let curVc =  null
+        let crdt = null
+        let recentTime = null
+        let curDoc = null
+        if(!cache.get(DocId))
         {
+            const result = await socketGetDoc({_id:DocId})
+            curDoc=result.curDoc
+            curVc = new VectorClock(DocId)//idle for to long basically
+            curVc.checkInVec(uid)
+            if(curDoc===undefined){//if someone deletes whole doc basically
+                curDoc=""
+            }
+            crdt = new CrdtRga(curDoc, DocId)
+            recentTime = Math.floor(Date.now() / 1000);
+        }
+        else{
+            docData = cache.get(DocId)
+            curDoc =docData.value
+            curVc = docData.vectorClock;
+            crdt = docData.crdt
+            recentTime = docData.recentTime
+        }
+        const { isConcurrent, conflictingNodes } = curVc.isConcurrent(vc, DocId)
+        const interval = Number(curTime) - Number(recentTime);
+        if (isConcurrent || interval <= 1) {
             const conflictData = {
                 changes: changes,
                 conflictVc: vc,
-                conflictingNodes:conflictingNodes,
-                uid:uid,
+                conflictingNodes: conflictingNodes,
+                uid: uid,
             };
             const mChanges = crdt.merge(conflictData);
             curDoc = mChanges.curDoc
             const changesLog = mChanges.changesLog
             const conflict = mChanges.conflict
-            curVc=mChanges.vc
-            const curTime= Math.floor(Date.now() / 1000);
-            cache.set(DocId, { value: curDoc, vectorClock: curVc, crdt: crdt,recentTime:curTime });
-            if(conflict){
-                io.to(DocId).emit('documentUpdate', { content: mChanges.mergedLine, vectorClock: curVc.get_vector(), conflict:conflict})
+            curVc = mChanges.vc
+            const curTime = Math.floor(Date.now() / 1000);
+            cache.set(DocId, { value: curDoc, vectorClock: curVc, crdt: crdt, recentTime: curTime });
+            if (conflict) {
+                io.to(DocId).emit('documentUpdate', { content: mChanges.mergedLine, vectorClock: curVc.get_vector(), conflict: conflict })
             }
-            else{
-                socket.to(DocId).emit('documentUpdate', { content: changesLog, vectorClock: curVc.get_vector(), conflict:conflict})
+            else {
+                socket.to(DocId).emit('documentUpdate', { content: changesLog, vectorClock: curVc.get_vector(), conflict: conflict })
             }
         }
         else {
@@ -68,11 +129,10 @@ io.on('connection', (socket) => {
             curDoc = crdtChanges.curDoc
             const changesLog = crdtChanges.changesLog
             curVc.receive(vc);
-            const curTime= Math.floor(Date.now() / 1000);
-            cache.set(DocId, { value: curDoc, vectorClock: curVc, crdt: crdt,recentTime:curTime });
-            socket.to(DocId).emit('documentUpdate', { content: changesLog, vectorClock: curVc.get_vector(),conflict:false })
+            const curTime = Math.floor(Date.now() / 1000);
+            cache.set(DocId, { value: curDoc, vectorClock: curVc, crdt: crdt, recentTime: curTime });
+            socket.to(DocId).emit('documentUpdate', { content: changesLog, vectorClock: curVc.get_vector(), conflict: false })
         }
-
     })
 })
 console.log("SockeServer")

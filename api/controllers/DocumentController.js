@@ -58,7 +58,7 @@ const shareDocument = async (req, res) => {
 
 const getMyDocs = async (req, res) => {
     try{
-        //console.log("getMyDocs called")
+        console.log("getMyDocs called")
         const documents = await DocumentService.getMyDocs(req.body);
         if (!documents) {
             return res.status(404).json({ message: "Incorrect User" });
@@ -76,14 +76,17 @@ const getMyDocs = async (req, res) => {
 }
 const getDocument = async(req,res) =>{
     try{
-        const document = await DocumentService.getDocument(req.body)
+        const document = await DocumentService.getDocument(req.query)
         if(!document){
             return res.json({
                 message:"error grabbing document"
             })
         }
+        console.log("GET VC:", JSON.stringify(document.vectorClock, null, 2));
         return res.status(200).json({
-            data:document['name']
+            content:document['content'],
+            data:document['name'],
+            vc:document['vectorClock'],
         })
     }catch(error){
         return res.status(500).json({
@@ -110,5 +113,15 @@ const createNewDocument = async (req,res) =>{
         throw error
     }
 }
+const updateDocument = async(req,res) => {
+    try{
+        const update = await DocumentService.updateDocuments({...req.body})
+        return res.json({
+            message:"Updated Document YAY"
+        })
+    }catch(error){
+        throw error
+    }
+}
 
-export default { getSharedDocs, shareDocument , getMyDocs, createNewDocument, getDocument};
+export default { getSharedDocs, shareDocument , getMyDocs, createNewDocument, getDocument,updateDocument};
