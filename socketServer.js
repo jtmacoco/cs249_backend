@@ -29,7 +29,6 @@ const options = {
     noDisposeOnSet: true,
     allowStale: true,
     disposeAfter: (value, key) => {
-        //console.log(`Key: ${key}, Value: ${JSON.stringify(value['value'])} has been fully removed.`);
         const curDoc = value['value']
         const curVc= value['vectorClock']
         socketSaveDoc({_id:key, content:curDoc, vectorClock:curVc})
@@ -43,26 +42,20 @@ setInterval(() => {
 }, 11000); 
 
 setInterval(() => {
-    console.log("interval")
     for (const [key, value] of cache.entries()) {
-        console.log("saving")
         const curDoc = value['value']
         const curVc = value ['vectorClock']
         socketSaveDoc({_id:key, content:curDoc, VectorClock:curVc})
     }
-}, 30000); // 30 seconds
+}, 10000); 
 io.on('connection', (socket) => {
     socket.on('joinDocument', async ({ DocId, uid }) => {
         socket.join(DocId)
-        console.log("first Join")
         if (!cache.get(DocId)) {//change this to grab from mongodb later
-            new VectorClock(DocId)
             let crdt = null
             const curTime = Math.floor(Date.now() / 1000);
             let {curDoc,vc} = await socketGetDoc({_id:DocId})
-            if(Object.keys(vc).length==0){
-                vc = new VectorClock(DocId)
-            }
+            vc = new VectorClock(DocId)
             if(curDoc===undefined){
                 curDoc=""
                 crdt= new CrdtRga("", DocId)
@@ -103,7 +96,7 @@ io.on('connection', (socket) => {
         }
         const { isConcurrent, conflictingNodes } = curVc.isConcurrent(vc, DocId)
         const interval = Number(curTime) - Number(recentTime);
-        if (isConcurrent || interval <= 1) {
+        if (isConcurrent || interval < 3 ) {
             const conflictData = {
                 changes: changes,
                 conflictVc: vc,

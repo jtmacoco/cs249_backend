@@ -16,6 +16,13 @@ export default class CrdtRga {
             if (type === 'insert') {
                 if (text === '\n' || text === '\r\n') {
                     // Inserting a new line at the start position
+                    if(this.lines[sln-1] == undefined){
+                        for (let i = 0;  i<sln;i++){
+                            if(this.lines[i]==undefined){
+                                this.lines.push("")
+                            }
+                        }
+                    }
                     const lineBefore = this.lines[sln - 1].slice(0, sc - 1);
                     const lineAfter = this.lines[sln - 1].slice(sc - 1);
 
@@ -30,6 +37,9 @@ export default class CrdtRga {
                     const multiLine=text.split('\n')
                     const start = sln-1
                     let end = 0
+                    if(this.lines[start] === undefined){
+                        this.lines.push("")
+                    }
                     if (this.lines[start + 0][ec - 1] !== undefined && this.lines[start + 0][ec - 1] !== '') {
                         end = (start+multiLine.length+this.lines.length)-1
                     }
@@ -83,6 +93,11 @@ export default class CrdtRga {
                 }
                 else {
                     // Inserting text on the same line
+                    for(let i = 0; i < sln; i++){
+                    if(this.lines[i] == undefined){
+                        this.lines.push("")
+                    }
+                }
                     this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1) + text + this.lines[sln - 1].slice(ec - 1);
                     changesLog.push({
                         type: 'insert',
@@ -157,6 +172,9 @@ export default class CrdtRga {
     }
     resolveConflict(existingText, newText, uid, conflictingNodes) {
         let mergedText = ""
+        if(newText==existingText){
+            return {
+            text:newText,conflict:false}}
         if(existingText.length === 0){return {text:newText,conflict:false}}
         const conflictTime = this.vc.getTime(uid);
         let flag = false
@@ -185,35 +203,56 @@ export default class CrdtRga {
         let changesLog = []
         let conflict = true
         let { changes, conflictVc, conflictingNodes, uid } = conflictData;
-        //changes = this.convert(changes)
+        const prevChanges = changes
+        changes = this.convert(changes)
         conflictingNodes = conflictingNodes.filter(node => node !== uid);
-        let mergerLine = 0
+        let mergerLine = undefined
         this.vc.receive(conflictVc)
         for (let { range, text, type } of changes) {
             const { startLineNumber: sln, startColumn: sc, endLineNumber: eln, endColumn: ec } = range;
             if (type === 'insert' && text.length > 0) {
                 if (text === '\n' || text === '\r\n'||text==="") {
                     // Inserting a new line at the start position
+                    //conflict=false
+                    if(this.lines[sln-1]==undefined){
+                        for(let i = 0; i < sln;i++){
+                            if(this.lines[i]==undefined){
+                                this.lines.push("")
+                            }
+                        }
+                    }
+                    const existingText = this.lines[sln - 1].slice(sc - 1, ec)
+                    const resolved= this.resolveConflict(existingText, text, uid, conflictingNodes);
                     conflict=false
+                    const resolvedText=resolved.text
                     const lineBefore = this.lines[sln - 1].slice(0, sc - 1);
                     const lineAfter = this.lines[sln - 1].slice(sc - 1);
                     this.lines.splice(sln - 1, 1, lineBefore, lineAfter);
+                    
                     changesLog.push({
                         type: 'insert',
                         range: { startLineNumber: sln, startColumn: sc, endLineNumber: eln, endColumn: ec },
-                        text: '\n'
+                        text: resolvedText
                     });
                 } else {
+                    if(this.lines[sln-1]==undefined){
+                        for(let i = 0; i < sln;i++){
+                            if(this.lines[i]==undefined){
+                                this.lines.push("")
+                            }
+                        }
+                    }
                 const existingText = this.lines[sln - 1].slice(sc - 1, ec)
                 if (existingText != text) {
                     mergerLine=sln
                     const resolved= this.resolveConflict(existingText, text, uid, conflictingNodes);
                     const resolvedText=resolved.text
                     conflict=resolved.conflict
-                    this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1) + resolvedText + this.lines[sln - 1].slice(sc)
+                    this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1) + resolvedText + this.lines[sln - 1].slice(ec)
+                   
                     changesLog.push({
                         type: 'insert',
-                        range: { startLineNumber: sln, startColumn: sc, endLineNumber: eln, endColumn: ec+resolvedText.length+1},
+                        range: { startLineNumber: sln, startColumn: sc, endLineNumber: eln, endColumn: ec+resolvedText.length},
                         text: resolvedText
                     });
                 }
@@ -245,7 +284,7 @@ export default class CrdtRga {
             }
         }
         let mergerLines=changesLog
-        if(this.lines[mergerLine-1]!==undefined)
+        if(this.lines[mergerLine-1]!==undefined && mergerLine!==undefined)
         {
         mergerLines=[{
             type:'insert',

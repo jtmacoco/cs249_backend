@@ -107,7 +107,6 @@ const getDocument = async (query, fields) => {
 
 const updateDocuments = async (query) => {
     try {
-        console.log("QUERY:",query)
         const update = Document.updateOne(
             {_id:query['_id']},
             {$set:{content:query['content']}},
