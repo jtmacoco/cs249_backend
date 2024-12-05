@@ -1,6 +1,7 @@
 import express from 'express';
 import userController from '../controllers/UserController.js'
 import documentController from "../controllers/DocumentController.js";
+import health from "../health.js"
 
 const apiRouter = express.Router()
 
@@ -14,6 +15,8 @@ apiRouter.route("/document/my-doc").post(documentController.getMyDocs)
 apiRouter.route("/document/create-document").post(documentController.createNewDocument)
 apiRouter.route("/document/get-document").get(documentController.getDocument)
 apiRouter.route("/document/update-document").post(documentController.updateDocument)
+
+apiRouter.route("/checkhealth").post(health.checkhealth)
 
 export default apiRouter
 

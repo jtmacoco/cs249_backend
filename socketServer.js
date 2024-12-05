@@ -128,6 +128,17 @@ io.on('connection', (socket) => {
         }
     })
 })
+
+app.post('/api/checkhealth', (req, res) => {
+    const healthStatus = {
+        status: 'healthy',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        socketConnections: io.engine.clientsCount,
+    };
+    res.status(200).json(healthStatus);
+});
+
 console.log("SockeServer")
 
 server.listen(PORT, () => { console.log(`starting server using port ${PORT}`) })
