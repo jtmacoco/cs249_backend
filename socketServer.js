@@ -13,10 +13,11 @@ import { socketGetDoc, socketSaveDoc } from './socketCtrl.js';
 
 
 const app = express();
-const PORT = process.env.SOCKET_PORT || 5000;
+const PORT = process.env.SOCKET_PORT || 3000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
+    path: "/socket.io/",  
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
@@ -129,7 +130,7 @@ io.on('connection', (socket) => {
     })
 })
 
-app.post('/ws/checkhealth', (req, res) => {
+app.post('/socket.io/checkhealth', (req, res) => {
     const healthStatus = {
         status: 'healthy',
         timestamp: new Date().toISOString(),
