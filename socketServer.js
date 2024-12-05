@@ -130,7 +130,7 @@ io.on('connection', (socket) => {
     })
 })
 
-app.post('/socket.io/checkhealth', (req, res) => {
+app.post('/api/checkhealth', (req, res) => {
     const healthStatus = {
         status: 'healthy',
         timestamp: new Date().toISOString(),
