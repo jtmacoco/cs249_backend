@@ -17,6 +17,7 @@ const PORT = process.env.SOCKET_PORT || 3000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
+    path: "/socket.io/",  
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
@@ -128,6 +129,16 @@ io.on('connection', (socket) => {
         }
     })
 })
+
+app.post('/api/checkhealth', (req, res) => {
+    const healthStatus = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        socketConnections: io.engine.clientsCount,
+    };
+    res.status(200).json(healthStatus);
+});
+
 console.log("SockeServer")
 
 server.listen(PORT, () => { console.log(`starting server using port ${PORT}`) })
