@@ -119,6 +119,12 @@ export default class CrdtRga {
                     });
                 } else {
                     // Deleting text on the same line
+                    if(this.lines[sln-1]==undefined){
+                        for(let i = 0; i < sln; i++){
+                            if(this.lines[i]===undefined)
+                            this.lines.push("")
+                        }
+                    }
                     const deletedText = this.lines[sln - 1].slice(sc - 1, ec - 1);
                     if (sln != eln) {//if select multiple lines using ctrl a or something handle
                         this.lines[sln - 1] = this.lines[sln - 1].slice(0, sc - 1)
