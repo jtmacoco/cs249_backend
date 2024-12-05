@@ -1,7 +1,16 @@
 import bcrypt from 'bcrypt';
 import UserServices from "../services/UserServices.js";
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 dotenv.config();
+const generateToken = (user) => {
+    const payload = {
+      id: user.user, 
+      email: user.email, 
+    };
+  
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+  };
 const register = async (req, res) => {
     try {
         const users = await UserServices.getAllUsers({ username: req.body.username }, { _id: 1, username: 1 })
@@ -56,10 +65,14 @@ const login = async(req,res)=>{
                 message:'invalid credentials',
                 })
         }
+        console.log(user._id.toString(),user.email)
+        const token = generateToken({user:user._id.toString(),email:user.email})
+
         return res.json({
             success:true,
             data:user.email,
             message:'successfully logged in user :)',
+            token:token,
         })
     }catch(e){
         return res.status(400).json({
