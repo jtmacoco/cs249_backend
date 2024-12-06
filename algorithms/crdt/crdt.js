@@ -216,7 +216,6 @@ export default class CrdtRga {
                 if (text === '\n' || text === '\r\n'||text==="") {
                     // Inserting a new line at the start position
                     //conflict=false
-                    /*
                     if(this.lines[sln-1]==undefined){
                         for(let i = 0; i < sln;i++){
                             if(this.lines[i]==undefined){
@@ -224,7 +223,6 @@ export default class CrdtRga {
                             }
                         }
                     }
-                        */
                     const existingText = this.lines[sln - 1].slice(sc - 1, ec)
                     const resolved= this.resolveConflict(existingText, text, uid, conflictingNodes);
                     conflict=false
@@ -239,7 +237,6 @@ export default class CrdtRga {
                         text: resolvedText
                     });
                 } else {
-                    /*
                     if(this.lines[sln-1]==undefined){
                         for(let i = 0; i < sln;i++){
                             if(this.lines[i]==undefined){
@@ -247,7 +244,6 @@ export default class CrdtRga {
                             }
                         }
                     }
-                        */
                 const existingText = this.lines[sln - 1].slice(sc - 1, ec)
                 if (existingText != text) {
                     mergerLine=sln
